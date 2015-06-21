@@ -1,0 +1,35 @@
+Bartosz Janeczek
+Practical Machine Learning - Project Assignment
+====
+
+## Loading the data
+First what I need is to download source data.
+```{r}    
+training <- read.csv("http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv")
+testing <- read.csv("http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv")
+library(caret)
+```
+
+## Initial model and testing
+I have selected all useful variables (ommited dates, columns with NAs and not useful values). Then I calculated expected out of sample error with decision trees (J48 method).
+
+I used 60% of original training data as "training" and 40% as "testing".
+```{r} 
+inTrain <- createDataPartition(y=training$classe,p=0.6, list=FALSE)
+training1 <- training[inTrain,]
+testing1 <- training[-inTrain,]
+
+modFit1 <- train(classe~ roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell,data=training,method="J48")
+
+pred1 <- predict(modFit1,testing1)
+confusionMatrix(testing1$classe,pred1)
+```
+Out of sample error has been estimated at about 3%.
+
+## Final model
+I have used random forests model, which already uses CROSS-VALIDATION inside, so no additional cross validation is needed. Used 10 trees.
+```{r} 
+modFit <- train(classe~ roll_belt+pitch_belt+yaw_belt+total_accel_belt+gyros_belt_x+gyros_belt_y+gyros_belt_z+accel_belt_x+accel_belt_y+accel_belt_z+magnet_belt_x+magnet_belt_y+magnet_belt_z+roll_arm+pitch_arm+yaw_arm+total_accel_arm+gyros_arm_x+gyros_arm_y+gyros_arm_z+accel_arm_x+accel_arm_y+accel_arm_z+magnet_arm_x+magnet_arm_y+magnet_arm_z+roll_dumbbell+pitch_dumbbell+yaw_dumbbell,data=training,method="rf",prox=FALSE,ntree=10)
+
+modFit
+```
